@@ -117,6 +117,10 @@ export function stopSynthMusic() {
   musicOscs = []
 }
 
+export function isSynthPlaying() {
+  return musicOscs.length > 0
+}
+
 export function sfx(name: SfxName) {
   if (!ctx || !master) return
 

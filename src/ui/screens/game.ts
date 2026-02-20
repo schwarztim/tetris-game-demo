@@ -5,8 +5,8 @@ import { startGame } from '../../game/loop'
 import { COLORS, type Tetromino } from '../../game/constants'
 import { getBlocks } from '../../game/pieces'
 import { submitScore } from '../../storage/leaderboard'
-import { ensureAudioBooted, setMasterVolume, sfx, startMusic, stopSynthMusic } from '../../audio/synth'
-import { playMusic, stopMusic as stopMp3Music } from '../../audio/player'
+import { ensureAudioBooted, setMasterVolume, sfx, startMusic, stopSynthMusic, isSynthPlaying } from '../../audio/synth'
+import { playMusic, stopMusic as stopMp3Music, audioPlaying } from '../../audio/player'
 
 export function createGameScreen({
   router,
@@ -190,7 +190,24 @@ export function createGameScreen({
 
     if (state.status === 'paused') {
       overlay.innerHTML = `<div class="overlay__card"><div class="overlay__title">PAUSED</div><div class="overlay__sub">Press Esc to resume</div></div>`
+      // Only stop if they were playing
+      if (isSynthPlaying()) stopSynthMusic()
+      if (audioPlaying()) stopMp3Music()
     } else if (state.status !== 'over') {
+      if (settings.musicEnabled) {
+        const volume01 = settings.volume / 100
+        if (settings.musicTrack === 'synth') {
+          if (!isSynthPlaying()) {
+            setMasterVolume(volume01)
+            startMusic()
+          }
+        } else {
+          if (!audioPlaying()) {
+            stopSynthMusic()
+            playMusic('game_mp3', volume01)
+          }
+        }
+      }
       // keep transient messages only
       if (!overlay.dataset.locked) overlay.innerHTML = ''
     }
@@ -300,7 +317,7 @@ function miniPanel(title: string) {
 
   function drawQueue(ts: Tetromino[]) {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ts.forEach((t, i) => drawMiniPiece(ctx, t, 0, i * 44))
+    ts.forEach((t, i) => drawMiniPiece(ctx, t, 0, i * 80))
   }
 
   return {

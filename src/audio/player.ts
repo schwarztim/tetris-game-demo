@@ -44,6 +44,10 @@ export function stopMusic() {
   } catch {}
 }
 
+export function audioPlaying() {
+  return audio && !audio.paused
+}
+
 function clamp(n: number, a: number, b: number) {
   return Math.max(a, Math.min(b, n))
 }
